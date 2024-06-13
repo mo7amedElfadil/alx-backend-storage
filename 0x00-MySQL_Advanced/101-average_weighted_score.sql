@@ -2,7 +2,7 @@
 -- and store the average weighted score for all students.
 -- Procedure ComputeAverageWeightedScoreForUsers is not taking any input.
 
-DDROP PROCEDURE IF EXISTS ComputeAverageWeightedScoreForUsers;
+DROP PROCEDURE IF EXISTS ComputeAverageWeightedScoreForUsers;
 DELIMITER $$
 CREATE PROCEDURE ComputeAverageWeightedScoreForUsers()
 BEGIN
@@ -15,6 +15,5 @@ BEGIN
 	AS AW
 	SET U.average_score = AW.weighted_score
 	WHERE U.id=AW.id;
-END
-$$
+END$$
 DELIMITER ;
