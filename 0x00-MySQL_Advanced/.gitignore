@@ -1,0 +1,7 @@
+*
+!/.gitignore
+!/README.md
+!/LICENSE
+!/*.sql
+names.sql
+metal_bands.sql
