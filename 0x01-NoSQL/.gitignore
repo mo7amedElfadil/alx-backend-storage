@@ -1,0 +1,5 @@
+!/.gitignore
+!/README.md
+dump
+main_files
+__pycache__
