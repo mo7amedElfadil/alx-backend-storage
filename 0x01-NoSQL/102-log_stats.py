@@ -13,40 +13,15 @@ def log_stats():
     client = MongoClient('mongodb://127.0.0.1:27017')
     logs = client.logs.nginx
     log_count = logs.count_documents({})
-    method = ["GET", "POST", "PUT", "PATCH", "DELETE"]
-    aggregate_methods = logs.aggregate([
-        {'$project': {
-            'method': 1,
-            '_id': 0,
-            },
-         },
-        {'$match': {
-            'method': {'$in': method},
-            },
-         },
-        {'$group': {
-            '_id': '$method',
-            'count': {'$sum': 1},
-            },
-         },
-        {'$sort': {'count': -1}},
-    ])
+    methods = ["GET", "POST", "PUT", "PATCH", "DELETE"]
 
-    aggregate_status = logs.aggregate([
-        {'$project': {
-            'method': 1,
-            '_id': 0,
-            'path': 1,
-            },
-         },
-        {'$match': {
-            'method': 'GET',
-            'path': '/status',
-            },
-         },
-        {'$count': 'status'},
-        {'$limit': 1},
-    ]).next()
+    print(f'{log_count} logs')
+    print('Methods:')
+    for method in methods:
+        count = logs.count_documents({"method": method})
+        print(f'\tmethod {method}: {count}')
+    status_count = logs.count_documents({"method": "GET", "path": "/status"})
+    print(f'{status_count} status check')
 
     aggregate_IPs = logs.aggregate([
         {'$project': {
@@ -63,14 +38,6 @@ def log_stats():
         {'$limit': 10},
     ])
 
-    print(f'{log_count} logs')
-    print('Methods:')
-    for item in aggregate_methods:
-        print(f'\tmethod {item.get("_id")}: {item.get("count")}')
-        method.remove(item.get("_id"))
-    for item in sorted(method, reverse=True):
-        print(f'\tmethod {item}: 0')
-    print(f'{aggregate_status.get("status")} status check')
     print('IPs:')
     for item in aggregate_IPs:
         print(f'\t{item.get("_id")}: {item.get("count")}')
