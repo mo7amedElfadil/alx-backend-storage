@@ -17,6 +17,7 @@ def get_cached_page(url: str) -> Union[str, None]:
         return html.decode("utf-8")
     return None
 
+
 def cache_page(expiration: int = 10) -> Callable:
     def page_counter(func: Callable) -> Callable:
         """Count the number of times a url has been visited.
@@ -24,7 +25,8 @@ def cache_page(expiration: int = 10) -> Callable:
         @wraps(func)
         def wrapper(url) -> str:
             """Wrapper function for page_counter.
-                Sets the number of times a url has been visited in a redis cache.
+                Sets the number of times a url has been visited in a redis
+                cache.
                 The cache expires after 10 seconds.
             """
 
