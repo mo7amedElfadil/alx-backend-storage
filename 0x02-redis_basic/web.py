@@ -6,6 +6,8 @@ import redis
 import requests
 from typing import Callable
 
+cache = redis.Redis()
+
 
 def page_counter(func: Callable) -> Callable:
     """Count the number of times a url has been visited.
@@ -16,7 +18,6 @@ def page_counter(func: Callable) -> Callable:
             Sets the number of times a url has been visited in a redis cache.
             The cache expires after 10 seconds.
         """
-        cache = redis.Redis()
         url = args[0]
         cache.incr(f"count:{url}")
         html = cache.get(f"cache:{url}")
