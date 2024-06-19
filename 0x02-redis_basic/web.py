@@ -43,7 +43,7 @@ def page_counter(func: Callable) -> Callable:
 def get_count(url: str) -> int:
     """Get the number of times a URL has been visited.
     """
-    return int(cache.get(f"count:{url}"))
+    return int(cache.get(f"count:{url}") or 0)
 
 
 @page_counter
