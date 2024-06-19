@@ -11,7 +11,7 @@ def page_counter(func: Callable) -> Callable:
     """Count the number of times a url has been visited.
     """
     @wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args, **kwargs) -> str:
         """Wrapper function for page_counter.
             Sets the number of times a url has been visited in a redis cache.
             The cache expires after 10 seconds.
@@ -23,6 +23,7 @@ def page_counter(func: Callable) -> Callable:
         if html:
             return html.decode("utf-8")
         html = func(*args, **kwargs)
+        cache.set(f"count:{url}", 0)
         cache.setex(f"cache:{url}", 10, html)
         return html
     return wrapper
