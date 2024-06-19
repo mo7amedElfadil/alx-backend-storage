@@ -27,13 +27,14 @@ def page_counter(func: Callable) -> Callable:
             Sets the number of times a url has been visited in a redis cache.
             The cache expires after 10 seconds.
         """
-        cache.incr(f"count:{url}")
 
         html = get_cached_page(url)
         if html is not None:
+            cache.incr(f"count:{url}")
             return html
 
         html = func(url)
+        cache.set(f"count:{url}", 1, ex=10)
         cache.setex(f"cache:{url}", 10, html)
 
         return html
