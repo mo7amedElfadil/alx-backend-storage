@@ -18,11 +18,13 @@ def page_counter(func: Callable) -> Callable:
         """
         cache = redis.Redis()
         url = args[0]
-        with cache.pipeline() as pipe:
-            pipe.incr(f"count:{url}")
-            pipe.expire(f"count:{url}", 10)
-            pipe.execute()
-        return func(*args, **kwargs)
+        cache.incr(f"count:{url}")
+        html = cache.get(f"cache:{url}")
+        if html:
+            return html.decode("utf-8")
+        html = func(*args, **kwargs)
+        cache.setex(f"cache:{url}", 10, html)
+        return html
     return wrapper
 
 
@@ -31,6 +33,16 @@ def get_count(url: str) -> int:
     """
     cache = redis.Redis()
     return int(cache.get(f"count:{url}") or 0)
+
+
+def get_cached_page(url: str) -> str:
+    """Get the HTML content of a particular URL from a cache.
+    """
+    cache = redis.Redis()
+    html = cache.get(f"cache:{url}")
+    if html:
+        return html.decode("utf-8")
+    return "No cache available."
 
 
 @page_counter
@@ -47,7 +59,7 @@ if __name__ == "__main__":
            + "5000/url/https://www.google.com")
     for _ in range(5):
         get_page(url)
-    print(get_page(url))
     print(get_count(url))
+    print(get_cached_page(url))
     sleep(10)
-    print(get_count(url))
+    print(get_cached_page(url))
