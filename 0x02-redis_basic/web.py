@@ -17,28 +17,29 @@ def get_cached_page(url: str) -> Union[str, None]:
         return html.decode("utf-8")
     return None
 
-
-def page_counter(func: Callable) -> Callable:
-    """Count the number of times a url has been visited.
-    """
-    @wraps(func)
-    def wrapper(url) -> str:
-        """Wrapper function for page_counter.
-            Sets the number of times a url has been visited in a redis cache.
-            The cache expires after 10 seconds.
+def cache_page(expiration: int = 10) -> Callable:
+    def page_counter(func: Callable) -> Callable:
+        """Count the number of times a url has been visited.
         """
+        @wraps(func)
+        def wrapper(url) -> str:
+            """Wrapper function for page_counter.
+                Sets the number of times a url has been visited in a redis cache.
+                The cache expires after 10 seconds.
+            """
 
-        html = get_cached_page(url)
-        if html is not None:
-            cache.incr(f"count:{url}")
+            html = get_cached_page(url)
+            if html is not None:
+                cache.incr(f"count:{url}")
+                return html
+
+            html = func(url)
+            cache.set(f"count:{url}", 1, ex=expiration)
+            cache.setex(f"cache:{url}", expiration, html)
+
             return html
-
-        html = func(url)
-        cache.set(f"count:{url}", 1, ex=10)
-        cache.setex(f"cache:{url}", 10, html)
-
-        return html
-    return wrapper
+        return wrapper
+    return page_counter
 
 
 def get_count(url: str) -> int:
@@ -47,7 +48,7 @@ def get_count(url: str) -> int:
     return int(cache.get(f"count:{url}") or 0)
 
 
-@page_counter
+@cache_page(expiration=10)
 def get_page(url: str) -> str:
     """Get the HTML content of a particular URL and return it.
     """
