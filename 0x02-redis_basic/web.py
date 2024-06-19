@@ -4,9 +4,18 @@
 from functools import wraps
 import redis
 import requests
-from typing import Callable
+from typing import Callable, Union
 
 cache = redis.Redis()
+
+
+def get_cached_page(url: str) -> Union[str, None]:
+    """Get the HTML content of a particular URL from a cache.
+    """
+    html = cache.get(f"cache:{url}")
+    if html:
+        return html.decode("utf-8")
+    return None
 
 
 def page_counter(func: Callable) -> Callable:
@@ -19,14 +28,22 @@ def page_counter(func: Callable) -> Callable:
             The cache expires after 10 seconds.
         """
         cache.incr(f"count:{url}")
-        html = cache.get(f"cache:{url}")
+
+        html = get_cached_page(url)
         if html:
-            return html.decode("utf-8")
+            return html
+
         html = func(url)
-        cache.set(f"count:{url}", 0)
         cache.setex(f"cache:{url}", 10, html)
+
         return html
     return wrapper
+
+
+def get_count(url: str) -> int:
+    """Get the number of times a URL has been visited.
+    """
+    return int(cache.get(f"count:{url}"))
 
 
 @page_counter
@@ -35,3 +52,16 @@ def get_page(url: str) -> str:
     """
     html = requests.get(url)
     return html.text
+
+
+if __name__ == "__main__":
+    from time import sleep
+    url = ("http://slowwly.robertomurray.co.uk/delay/"
+           + "5000/url/https://www.google.com")
+    print(get_count(url))
+    for _ in range(5):
+        get_page(url)
+    print(get_count(url))
+    print(get_cached_page(url))
+    sleep(10)
+    print(get_cached_page(url))
