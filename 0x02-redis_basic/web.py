@@ -12,7 +12,7 @@ cache = redis.Redis()
 def get_cached_page(url: str) -> Union[str, None]:
     """Get the HTML content of a particular URL from a cache.
     """
-    html = cache.get(f"cache:{url}")
+    html = cache.get(f"{url}")
     if html is not None:
         return html.decode("utf-8")
     return None
@@ -37,7 +37,7 @@ def cache_page(expiration: int = 10) -> Callable:
                 return html
 
             html = func(url)
-            cache.setex(f"cache:{url}", expiration, html)
+            cache.setex(f"{url}", expiration, html)
 
             return html
         return wrapper
