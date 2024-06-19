@@ -12,7 +12,7 @@ cache = redis.Redis()
 def get_cached_page(url: str) -> Union[str, None]:
     """Get the HTML content of a particular URL from a cache.
     """
-    html = cache.get(f"cache:{url}")
+    html = cache.get(f"result:{url}")
     if html:
         return html.decode("utf-8")
     return None
@@ -34,7 +34,7 @@ def page_counter(func: Callable) -> Callable:
             return html
 
         html = func(url)
-        cache.setex(f"cache:{url}", 10, html)
+        cache.setex(f"result:{url}", 10, html)
 
         return html
     return wrapper
