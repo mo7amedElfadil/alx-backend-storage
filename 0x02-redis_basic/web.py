@@ -4,24 +4,25 @@
 from functools import wraps
 import redis
 import requests
-from typing import Callable, Union
+from typing import Callable, Union, Optional
 
 cache = redis.Redis()
 
 
-def get_cached_page(url: str) -> Union[str, None]:
+def get_cached_page(url: str) -> Optional[str]:
     """Get the HTML content of a particular URL from a cache.
     """
-    html = cache.get(f"{url}")
+    html = cache.get(f"cache:{url}")
     if html is not None:
         return html.decode("utf-8")
     return None
 
 
-def cache_page(expiration: int = 10) -> Callable:
+def cache_page(expiration: int = 10) -> Callable[[Callable[[str], str]],
+                                                 Callable[[str], str]]:
     """Cache the HTML content of a particular URL.
     """
-    def page_counter(func: Callable) -> Callable:
+    def page_counter(func: Callable[[str], str]) -> Callable[[str], str]:
         """Count the number of times a url has been visited.
         """
         @wraps(func)
@@ -37,7 +38,7 @@ def cache_page(expiration: int = 10) -> Callable:
                 return html
 
             html = func(url)
-            cache.setex(f"{url}", expiration, html)
+            cache.setex(f"cache:{url}", expiration, html)
 
             return html
         return wrapper
