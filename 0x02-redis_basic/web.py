@@ -51,7 +51,7 @@ def get_count(url: str) -> int:
 
 
 @cache_page(expiration=10)
-def get_page(url: str) -> Union【str, None]:
+def get_page(url: str) -> Union[str, None]:
     """Get the HTML content of a particular URL and return it.
     """
     html = requests.get(url)
